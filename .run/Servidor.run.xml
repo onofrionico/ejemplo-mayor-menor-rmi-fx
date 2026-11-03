@@ -1,0 +1,9 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Servidor" type="Application" factoryName="Application" singleton="true">
+    <option name="MAIN_CLASS_NAME" value="ar.edu.unlu.mayormenor.servidor.LanzadorServidor" />
+    <module name="ejemplo-mayor-menor-rmi-fx" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

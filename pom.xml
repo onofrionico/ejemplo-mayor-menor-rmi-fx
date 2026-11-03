@@ -20,7 +20,7 @@
             Clase que arranca "mvn javafx:run" (uso del equipo docente; desde IntelliJ
             se usan los lanzadores).
         -->
-        <javafx.mainClass>ar.edu.unlu.mayormenor.App</javafx.mainClass>
+        <javafx.mainClass>ar.edu.unlu.mayormenor.cliente.AppCliente</javafx.mainClass>
     </properties>
 
     <dependencies>
