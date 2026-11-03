@@ -7,6 +7,7 @@ import ar.edu.unlu.mayormenor.vista.VistaGrafica;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
+import java.rmi.RemoteException;
 import java.util.Random;
 
 /**
@@ -15,9 +16,12 @@ import java.util.Random;
 public class App extends Application {
 
     @Override
-    public void start(Stage stage) {
+    public void start(Stage stage) throws RemoteException {
         Partida modelo = new Partida(() -> Mazo.mezclado(new Random()));
-        Controlador controlador = new Controlador(modelo);
+        // Por ahora todo sigue en la misma JVM: conectamos a mano lo que después hará la librería RMI
+        Controlador controlador = new Controlador();
+        controlador.setModeloRemoto(modelo);
+        modelo.agregarObservador(controlador);
         VistaGrafica vista = new VistaGrafica(stage, controlador);
         controlador.setVista(vista);
         vista.mostrarMenu();

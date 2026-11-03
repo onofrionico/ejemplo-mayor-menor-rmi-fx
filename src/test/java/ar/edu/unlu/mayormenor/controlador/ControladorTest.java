@@ -1,5 +1,6 @@
 package ar.edu.unlu.mayormenor.controlador;
 
+import ar.edu.unlu.mayormenor.modelo.Apuesta;
 import ar.edu.unlu.mayormenor.modelo.Carta;
 import ar.edu.unlu.mayormenor.modelo.Mazo;
 import ar.edu.unlu.mayormenor.modelo.Partida;
@@ -7,12 +8,14 @@ import ar.edu.unlu.mayormenor.vista.IVista;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
 
 import static ar.edu.unlu.mayormenor.modelo.Apuesta.MAYOR;
 import static ar.edu.unlu.mayormenor.modelo.Palo.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * El Controlador se prueba sin JavaFX: en lugar de la vista gráfica
@@ -43,6 +46,11 @@ class ControladorTest {
             llamadas.add("mostrarResultado " + puntaje + " " + ganada);
         }
 
+        @Override
+        public void mostrarError(String mensaje) {
+            llamadas.add("mostrarError " + mensaje);
+        }
+
         String ultima() {
             return llamadas.get(llamadas.size() - 1);
         }
@@ -51,13 +59,33 @@ class ControladorTest {
     private VistaEspia vista;
     private Controlador controlador;
 
+    /** Una partida que simula que se cortó la red. */
+    static class PartidaSinConexion extends Partida {
+        PartidaSinConexion() {
+            super(() -> new Mazo(List.of(new Carta(5, ORO), new Carta(7, COPA))));
+        }
+
+        @Override
+        public void apostar(Apuesta apuesta) throws RemoteException {
+            throw new RemoteException("sin conexión");
+        }
+    }
+
+    /** Conecta controlador y modelo igual que lo hace Cliente.iniciar(...) de la librería. */
+    private static Controlador conectar(Partida partida, IVista vista) throws RemoteException {
+        Controlador controlador = new Controlador();
+        controlador.setModeloRemoto(partida);
+        partida.agregarObservador(controlador);
+        controlador.setVista(vista);
+        return controlador;
+    }
+
     @BeforeEach
-    void setUp() {
+    void setUp() throws RemoteException {
         Partida partida = new Partida(() -> new Mazo(List.of(
                 new Carta(5, ORO), new Carta(7, COPA), new Carta(2, ESPADA))));
-        controlador = new Controlador(partida);
         vista = new VistaEspia();
-        controlador.setVista(vista);
+        controlador = conectar(partida, vista);
     }
 
     @Test
@@ -94,5 +122,13 @@ class ControladorTest {
         controlador.abandonar();
         controlador.volverAlMenu();
         assertEquals("mostrarMenu", vista.ultima());
+    }
+
+    @Test
+    void errorDelModeloSeMuestraEnLaVista() throws RemoteException {
+        Controlador conCorte = conectar(new PartidaSinConexion(), vista);
+        conCorte.jugar();
+        conCorte.apostar(MAYOR);
+        assertTrue(vista.ultima().startsWith("mostrarError"), vista.ultima());
     }
 }

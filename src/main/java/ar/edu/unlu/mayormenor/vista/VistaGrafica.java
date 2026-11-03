@@ -5,6 +5,7 @@ import ar.edu.unlu.mayormenor.modelo.Carta;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -70,6 +71,14 @@ public class VistaGrafica implements IVista {
         ResultadoController resultado = cargar("/fxml/resultado.fxml");
         resultado.setControlador(controlador);
         resultado.mostrar(puntaje, ganada);
+    }
+
+    @Override
+    public void mostrarError(String mensaje) {
+        Alert alerta = new Alert(Alert.AlertType.ERROR, mensaje);
+        alerta.initOwner(stage);
+        alerta.setHeaderText("Algo salió mal");
+        alerta.showAndWait();
     }
 
     /**

@@ -16,4 +16,7 @@ public interface IVista {
     void mostrarCarta(Carta carta, int puntaje, int restantes);
 
     void mostrarResultado(int puntaje, boolean ganada);
+
+    /** Algo salió mal (por ejemplo, se cortó la conexión con el servidor). */
+    void mostrarError(String mensaje);
 }

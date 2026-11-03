@@ -2,10 +2,10 @@ package ar.edu.unlu.mayormenor.controlador;
 
 import ar.edu.unlu.mayormenor.modelo.Apuesta;
 import ar.edu.unlu.mayormenor.modelo.Eventos;
-import ar.edu.unlu.mayormenor.modelo.Partida;
+import ar.edu.unlu.mayormenor.modelo.IPartida;
 import ar.edu.unlu.mayormenor.vista.IVista;
+import ar.edu.unlu.rmimvc.cliente.IControladorRemoto;
 import ar.edu.unlu.rmimvc.observer.IObservableRemoto;
-import ar.edu.unlu.rmimvc.observer.IObservadorRemoto;
 
 import java.rmi.RemoteException;
 
@@ -16,50 +16,52 @@ import java.rmi.RemoteException;
  *       y él se lo pide al modelo.</li>
  *   <li>Observa al modelo: cuando el modelo cambia, le pide a la vista que muestre el nuevo estado.</li>
  * </ul>
- * Ahora el modelo es un observable remoto, así que el Controlador implementa
- * {@link IObservadorRemoto} y cada llamada al modelo puede tirar {@link RemoteException}.
+ * Es un <b>controlador remoto</b> ({@link IControladorRemoto}): se crea sin modelo y es la
+ * librería la que se lo entrega con {@link #setModeloRemoto} al conectarse al servidor.
+ * Solo conoce la interfaz {@link IPartida}: del otro lado puede haber una {@code Partida} local
+ * (en los tests) o un <i>stub</i> que habla con el servidor.
+ * <p>
+ * Cualquier llamada al modelo puede fallar ({@link RemoteException} si se cortó la red,
+ * {@link IllegalStateException} si el modelo no la permite): el error se muestra en la vista.
  * No importa nada de JavaFX: por eso se puede testear con una vista espía.
  */
-public class Controlador implements IObservadorRemoto {
+public class Controlador implements IControladorRemoto {
 
-    private final Partida modelo;
+    private IPartida modelo;
     private IVista vista;
-
-    public Controlador(Partida modelo) {
-        this.modelo = modelo;
-        try {
-            this.modelo.agregarObservador(this);
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
-    }
 
     public void setVista(IVista vista) {
         this.vista = vista;
+    }
+
+    /** Lo llama la librería (Cliente.iniciar) con el stub del modelo que está en el servidor. */
+    @Override
+    public <T extends IObservableRemoto> void setModeloRemoto(T modelo) throws RemoteException {
+        this.modelo = (IPartida) modelo;
     }
 
     public void jugar() {
         vista.mostrarJuego();
         try {
             modelo.iniciar();
-        } catch (RemoteException e) {
-            e.printStackTrace();
+        } catch (RemoteException | IllegalStateException e) {
+            vista.mostrarError(e.getMessage());
         }
     }
 
     public void apostar(Apuesta apuesta) {
         try {
             modelo.apostar(apuesta);
-        } catch (RemoteException e) {
-            e.printStackTrace();
+        } catch (RemoteException | IllegalStateException e) {
+            vista.mostrarError(e.getMessage());
         }
     }
 
     public void abandonar() {
         try {
             modelo.abandonar();
-        } catch (RemoteException e) {
-            e.printStackTrace();
+        } catch (RemoteException | IllegalStateException e) {
+            vista.mostrarError(e.getMessage());
         }
     }
 
