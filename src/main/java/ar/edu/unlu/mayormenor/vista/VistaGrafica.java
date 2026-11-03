@@ -2,6 +2,7 @@ package ar.edu.unlu.mayormenor.vista;
 
 import ar.edu.unlu.mayormenor.controlador.Controlador;
 import ar.edu.unlu.mayormenor.modelo.Carta;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -17,9 +18,14 @@ import java.io.UncheckedIOException;
  * Coordina las pantallas (cada una es un FXML con su controlador de vista)
  * sobre una única ventana ({@link Stage}).
  * <p>
- * Nota: las notificaciones del modelo llegan en el mismo hilo de JavaFX (todo pasa por un clic),
- * por eso no hace falta {@code Platform.runLater}. Sí haría falta si el modelo notificara desde
- * otro hilo, como el chat con RMI.
+ * <b>Por qué {@link Platform#runLater}.</b> JavaFX tiene un hilo propio, y es el único que puede
+ * tocar la ventana. Los avisos del servidor no empiezan con un clic en esta ventana: la librería los
+ * recibe en otro hilo y desde ahí el Controlador llama a esta vista. Si la vista tocara la pantalla
+ * directamente, JavaFX tiraría {@code IllegalStateException: Not on FX application thread}. Por eso
+ * cada método de {@link IVista} le encarga su trabajo a JavaFX con {@code Platform.runLater}
+ * ("cuando puedas, hacé esto") y termina enseguida. Nunca hay que hacer algo que se quede
+ * esperando (como un diálogo con {@code showAndWait()}) fuera del {@code runLater}: el servidor
+ * espera a que cada cliente termine de recibir el aviso.
  */
 public class VistaGrafica implements IVista {
 
@@ -41,44 +47,52 @@ public class VistaGrafica implements IVista {
 
     @Override
     public void mostrarMenu() {
-        MenuController menu = cargar("/fxml/menu.fxml");
-        menu.setControlador(controlador);
+        Platform.runLater(() -> {
+            MenuController menu = cargar("/fxml/menu.fxml");
+            menu.setControlador(controlador);
+        });
     }
 
     @Override
     public void mostrarJuego() {
-        // Si había una mesa anterior con las reglas abiertas, las cerramos: la mesa nueva tiene su propio controlador
-        if (juego != null) {
-            juego.cerrarReglas();
-        }
-        juego = cargar("/fxml/juego.fxml");
-        juego.setControlador(controlador);
+        Platform.runLater(() -> {
+            // Si había una mesa anterior con las reglas abiertas, las cerramos: la mesa nueva tiene su propio controlador
+            if (juego != null) {
+                juego.cerrarReglas();
+            }
+            juego = cargar("/fxml/juego.fxml");
+            juego.setControlador(controlador);
+        });
     }
 
     @Override
     public void mostrarCarta(Carta carta, int puntaje, int restantes) {
         // Misma escena: solo cambian la carta y los textos
-        juego.mostrarCarta(carta, puntaje, restantes);
+        Platform.runLater(() -> juego.mostrarCarta(carta, puntaje, restantes));
     }
 
     @Override
     public void mostrarResultado(int puntaje, boolean ganada) {
-        // La partida terminó: que no se pueda seguir apostando en la mesa
-        if (juego != null) {
-            juego.deshabilitarApuestas();
-        }
-        // Cambio de escena: de la mesa a la pantalla de resultado
-        ResultadoController resultado = cargar("/fxml/resultado.fxml");
-        resultado.setControlador(controlador);
-        resultado.mostrar(puntaje, ganada);
+        Platform.runLater(() -> {
+            // La partida terminó: que no se pueda seguir apostando en la mesa
+            if (juego != null) {
+                juego.deshabilitarApuestas();
+            }
+            // Cambio de escena: de la mesa a la pantalla de resultado
+            ResultadoController resultado = cargar("/fxml/resultado.fxml");
+            resultado.setControlador(controlador);
+            resultado.mostrar(puntaje, ganada);
+        });
     }
 
     @Override
     public void mostrarError(String mensaje) {
-        Alert alerta = new Alert(Alert.AlertType.ERROR, mensaje);
-        alerta.initOwner(stage);
-        alerta.setHeaderText("Algo salió mal");
-        alerta.showAndWait();
+        Platform.runLater(() -> {
+            Alert alerta = new Alert(Alert.AlertType.ERROR, mensaje);
+            alerta.initOwner(stage);
+            alerta.setHeaderText("Algo salió mal");
+            alerta.showAndWait();
+        });
     }
 
     /**
