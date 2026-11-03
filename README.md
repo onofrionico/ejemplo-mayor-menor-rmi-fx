@@ -69,7 +69,7 @@ lib/LibreriaRMIMVC.jar
 
 Es un ejemplo para aprender, no un juego robusto en red:
 
-- Si un cliente se cierra de golpe (por ejemplo, matando el proceso) sin pasar por la ventana, el servidor no se entera y los avisos a los demás pueden fallar.
+- Si un cliente se cierra de golpe (por ejemplo, matando el proceso o con el botón Stop de IntelliJ) sin pasar por la ventana, el servidor no se entera y los avisos a los demás pueden fallar. Cerrá cada cliente con la X de su ventana.
 - Si se cae el servidor, los clientes muestran un error pero no se reconectan.
 
 ## Créditos de imágenes
