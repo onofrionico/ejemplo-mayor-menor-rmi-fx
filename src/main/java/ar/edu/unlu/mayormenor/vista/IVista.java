@@ -1,6 +1,9 @@
 package ar.edu.unlu.mayormenor.vista;
 
 import ar.edu.unlu.mayormenor.modelo.Carta;
+import ar.edu.unlu.mayormenor.modelo.Jugador;
+
+import java.util.List;
 
 /**
  * Lo que el Controlador le puede pedir a la vista.
@@ -9,7 +12,13 @@ import ar.edu.unlu.mayormenor.modelo.Carta;
  * una consola o (en los tests) una vista espía.
  */
 public interface IVista {
-    void mostrarMenu();
+    /**
+     * La sala de espera.
+     *
+     * @param admin quien puede empezar la partida
+     * @param yo    el jugador de este cliente
+     */
+    void mostrarSala(List<Jugador> jugadores, Jugador admin, Jugador yo);
 
     void mostrarJuego();
 

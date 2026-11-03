@@ -3,6 +3,7 @@ package ar.edu.unlu.mayormenor.modelo;
 import ar.edu.unlu.rmimvc.observer.IObservableRemoto;
 
 import java.rmi.RemoteException;
+import java.util.List;
 
 /**
  * Lo que un cliente le puede pedir a la {@link Partida} a través de la red.
@@ -14,7 +15,29 @@ import java.rmi.RemoteException;
  */
 public interface IPartida extends IObservableRemoto {
 
-    void iniciar() throws RemoteException;
+    /**
+     * Entra a la sala de espera. El primero que entra es el admin.
+     *
+     * @return el jugador creado (con su id): el cliente lo guarda para saber quién es
+     * @throws IllegalArgumentException si el nombre está vacío o ya lo usa otro jugador
+     * @throws IllegalStateException    si la partida ya empezó
+     */
+    Jugador agregarJugador(String nombre) throws RemoteException;
+
+    /** Los jugadores, en orden de llegada. */
+    List<Jugador> getJugadores() throws RemoteException;
+
+    /** El primero en llegar; null si no hay nadie. */
+    Jugador getAdmin() throws RemoteException;
+
+    EstadoPartida getEstado() throws RemoteException;
+
+    /**
+     * Empieza (o vuelve a empezar) la partida con un mazo nuevo.
+     *
+     * @throws IllegalStateException si quien lo pide no es el admin, o si ya se está jugando
+     */
+    void iniciar(int idJugador) throws RemoteException;
 
     void apostar(Apuesta apuesta) throws RemoteException;
 

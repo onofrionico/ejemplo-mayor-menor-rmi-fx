@@ -25,11 +25,11 @@ public class ResultadoController {
 
     @FXML
     private void onJugarDeNuevo() {
-        controlador.jugar();
+        controlador.empezar();
     }
 
     @FXML
     private void onVolver() {
-        controlador.volverAlMenu();
+        controlador.volverALaSala();
     }
 }

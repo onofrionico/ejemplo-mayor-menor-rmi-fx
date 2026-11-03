@@ -89,7 +89,7 @@ public class JuegoController {
 
     @FXML
     private void onNueva() {
-        controlador.jugar();
+        controlador.empezar();
     }
 
     /** Diálogo MODAL: showAndWait() frena hasta que el usuario responde. */

@@ -2,6 +2,7 @@ package ar.edu.unlu.mayormenor.vista;
 
 import ar.edu.unlu.mayormenor.controlador.Controlador;
 import ar.edu.unlu.mayormenor.modelo.Carta;
+import ar.edu.unlu.mayormenor.modelo.Jugador;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -11,6 +12,7 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.List;
 
 /**
  * La vista gráfica: implementa {@link IVista} con JavaFX.
@@ -46,10 +48,12 @@ public class VistaGrafica implements IVista {
     }
 
     @Override
-    public void mostrarMenu() {
+    public void mostrarSala(List<Jugador> jugadores, Jugador admin, Jugador yo) {
         Platform.runLater(() -> {
-            MenuController menu = cargar("/fxml/menu.fxml");
-            menu.setControlador(controlador);
+            stage.setTitle("Mayor o Menor — " + yo.nombre());
+            SalaController sala = cargar("/fxml/sala.fxml");
+            sala.setControlador(controlador);
+            sala.mostrar(jugadores, admin, yo);
         });
     }
 
@@ -89,7 +93,10 @@ public class VistaGrafica implements IVista {
     public void mostrarError(String mensaje) {
         Platform.runLater(() -> {
             Alert alerta = new Alert(Alert.AlertType.ERROR, mensaje);
-            alerta.initOwner(stage);
+            // Antes de entrar a la sala la ventana todavía no tiene escena, y JavaFX no deja usarla como dueña
+            if (stage.getScene() != null) {
+                alerta.initOwner(stage);
+            }
             alerta.setHeaderText("Algo salió mal");
             alerta.showAndWait();
         });

@@ -26,6 +26,7 @@ import java.util.Optional;
  *   <li>publica al Controlador para que el servidor lo pueda llamar de vuelta,</li>
  *   <li>lo registra como observador del modelo y le entrega el stub con {@code setModeloRemoto}.</li>
  * </ol>
+ * Después pide el nombre del jugador y entra a la sala de espera.
  */
 public class AppCliente extends Application {
 
@@ -68,7 +69,16 @@ public class AppCliente extends Application {
         }
         // El cliente RMI deja hilos vivos: al cerrar la ventana, cortamos todo
         stage.setOnHidden(e -> System.exit(0));
-        vista.mostrarMenu();
+
+        // Ya conectados: entramos a la sala con un nombre (si el servidor lo rechaza, lo volvemos a pedir)
+        boolean adentro = false;
+        while (!adentro) {
+            Optional<String> nombre = preguntar("¿Cómo te llamás?", "");
+            if (nombre.isEmpty()) {
+                System.exit(0);
+            }
+            adentro = controlador.entrar(nombre.get());
+        }
     }
 
     private Optional<String> elegir(String pregunta, List<String> opciones) {

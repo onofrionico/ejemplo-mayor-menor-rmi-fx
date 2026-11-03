@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- Sala de espera: la lista de jugadores conectados y el botón del admin para empezar. -->
+<VBox alignment="CENTER" spacing="15.0" prefWidth="420.0" prefHeight="420.0"
+      xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="ar.edu.unlu.mayormenor.vista.SalaController"
+      stylesheets="@../styles/juego.css" styleClass="mesa">
+    <padding>
+        <Insets top="20.0" right="20.0" bottom="20.0" left="20.0"/>
+    </padding>
+    <Label text="Mayor o Menor" style="-fx-font-size: 32px; -fx-font-weight: bold;"/>
+    <Label text="Sala de espera"/>
+    <ListView fx:id="lstJugadores" prefHeight="200.0" focusTraversable="false"/>
+    <Button fx:id="btnEmpezar" text="Empezar partida" onAction="#onEmpezar" prefWidth="200.0"/>
+    <Label fx:id="lblEspera" text="Esperando…" wrapText="true"/>
+</VBox>
