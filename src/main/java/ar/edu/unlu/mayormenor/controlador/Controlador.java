@@ -35,10 +35,21 @@ import java.util.List;
  */
 public class Controlador implements IControladorRemoto {
 
+    private final Runnable alSalir;
     private IPartida modelo;
     private IVista vista;
     /** El jugador de este cliente: el que nos devolvió el modelo al entrar. */
     private Jugador yo;
+
+    public Controlador() {
+        // El cliente RMI deja hilos vivos esperando avisos: para cerrar la aplicación hay que cortarlos
+        this(() -> System.exit(0));
+    }
+
+    /** @param alSalir qué hacer después de salir de la partida (en los tests, no cerrar la JVM) */
+    Controlador(Runnable alSalir) {
+        this.alSalir = alSalir;
+    }
 
     public void setVista(IVista vista) {
         this.vista = vista;
@@ -88,6 +99,24 @@ public class Controlador implements IControladorRemoto {
             modelo.abandonar(yo.id());
         } catch (RemoteException | IllegalStateException e) {
             vista.mostrarError(e.getMessage());
+        }
+    }
+
+    /**
+     * Sale de la partida y cierra la aplicación (lo usa la vista al cerrar la ventana).
+     * Primero deja de observar, así no le llegan avisos mientras se va. Si el servidor no
+     * responde, se cierra igual.
+     */
+    public void salir() {
+        try {
+            modelo.removerObservador(this);
+            if (yo != null) {
+                modelo.quitarJugador(yo.id());
+            }
+        } catch (RemoteException | RuntimeException e) {
+            // Nos vamos de todos modos
+        } finally {
+            alSalir.run();
         }
     }
 

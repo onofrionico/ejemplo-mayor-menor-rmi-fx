@@ -27,6 +27,12 @@ public interface IPartida extends IObservableRemoto {
      */
     Jugador agregarJugador(String nombre) throws RemoteException;
 
+    /**
+     * El jugador se va (cerró la ventana). Si era el admin, el admin pasa al siguiente en orden
+     * de llegada; si tenía el turno, pasa al siguiente vivo; si queda uno solo vivo, termina.
+     */
+    void quitarJugador(int idJugador) throws RemoteException;
+
     /** Los jugadores, en orden de llegada (que es también el orden de los turnos). */
     List<Jugador> getJugadores() throws RemoteException;
 

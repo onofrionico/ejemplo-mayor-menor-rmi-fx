@@ -67,15 +67,14 @@ public class AppCliente extends Application {
             error.showAndWait();
             System.exit(1);
         }
-        // El cliente RMI deja hilos vivos: al cerrar la ventana, cortamos todo
-        stage.setOnHidden(e -> System.exit(0));
-
         // Ya conectados: entramos a la sala con un nombre (si el servidor lo rechaza, lo volvemos a pedir)
         boolean adentro = false;
         while (!adentro) {
             Optional<String> nombre = preguntar("¿Cómo te llamás?", "");
             if (nombre.isEmpty()) {
-                System.exit(0);
+                // Ya estamos registrados como observadores: hay que salir bien, o el servidor nos seguiría avisando
+                controlador.salir();
+                return;
             }
             adentro = controlador.entrar(nombre.get());
         }

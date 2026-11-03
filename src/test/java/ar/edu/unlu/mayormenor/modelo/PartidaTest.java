@@ -324,6 +324,74 @@ class PartidaTest {
         assertTrue(partida.getGanadores().isEmpty());
     }
 
+    // ----- Jugadores que se van (cierran la ventana) -----
+
+    @Test
+    void quitarEnLaSalaNotifica() throws RemoteException {
+        Partida partida = sala(new Carta(5, ORO));
+        partida.agregarJugador("Ana");
+        Jugador beto = partida.agregarJugador("Beto");
+        partida.quitarJugador(beto.id());
+        assertEquals(List.of("Ana"), nombres(partida.getJugadores()));
+        assertEquals(Eventos.JUGADORES_CAMBIARON, espia.ultimo());
+    }
+
+    @Test
+    void quitarAlAdminPasaElAdmin() throws RemoteException {
+        Partida partida = sala(new Carta(5, ORO));
+        Jugador ana = partida.agregarJugador("Ana");
+        partida.agregarJugador("Beto");
+        partida.quitarJugador(ana.id());
+        assertEquals("Beto", partida.getAdmin().nombre());
+    }
+
+    @Test
+    void quitarAlDeTurnoPasaElTurno() throws RemoteException {
+        Partida partida = empezada(List.of("Ana", "Beto", "Caro"), new Carta(5, ORO), new Carta(7, COPA));
+        partida.quitarJugador(buscar(partida, "Ana").id());
+        assertEquals("Beto", partida.getJugadorDeTurno().nombre());
+        assertEquals(EstadoPartida.EN_JUEGO, partida.getEstado());
+        assertEquals(Eventos.JUGADORES_CAMBIARON, espia.ultimo());
+    }
+
+    @Test
+    void quitarAlUltimoDeLaRondaVuelveAlPrimero() throws RemoteException {
+        Partida partida = empezada(List.of("Ana", "Beto", "Caro"),
+                new Carta(5, ORO), new Carta(7, COPA), new Carta(10, ESPADA), new Carta(12, BASTO));
+        partida.apostar(buscar(partida, "Ana").id(), MAYOR);
+        partida.apostar(buscar(partida, "Beto").id(), MAYOR);   // le toca a Caro, la última
+        partida.quitarJugador(buscar(partida, "Caro").id());
+        assertEquals("Ana", partida.getJugadorDeTurno().nombre());
+    }
+
+    @Test
+    void quitarAOtroNoCambiaElTurno() throws RemoteException {
+        Partida partida = empezada(List.of("Ana", "Beto", "Caro"),
+                new Carta(5, ORO), new Carta(7, COPA), new Carta(10, ESPADA));
+        partida.apostar(buscar(partida, "Ana").id(), MAYOR);    // le toca a Beto
+        partida.quitarJugador(buscar(partida, "Ana").id());
+        assertEquals("Beto", partida.getJugadorDeTurno().nombre());
+    }
+
+    @Test
+    void quitarDejandoUnSoloVivoTermina() throws RemoteException {
+        Partida partida = empezada(List.of("Ana", "Beto"), new Carta(5, ORO), new Carta(7, COPA));
+        partida.quitarJugador(buscar(partida, "Ana").id());
+        assertEquals(EstadoPartida.TERMINADA, partida.getEstado());
+        assertEquals(List.of("Beto"), nombres(partida.getGanadores()));
+        assertEquals(Eventos.PARTIDA_TERMINADA, espia.ultimo());
+    }
+
+    @Test
+    void sinJugadoresVuelveALaSala() throws RemoteException {
+        Partida partida = empezada(List.of("Ana"), new Carta(5, ORO), new Carta(7, COPA));
+        partida.quitarJugador(1);
+        assertEquals(EstadoPartida.SALA, partida.getEstado());
+        assertTrue(partida.getJugadores().isEmpty());
+        partida.agregarJugador("Beto");   // se puede volver a entrar
+        assertEquals("Beto", partida.getAdmin().nombre());
+    }
+
     @Test
     void removerObservadorDejaDeNotificar() throws RemoteException {
         Partida partida = partidaCon(new Carta(5, ORO), new Carta(7, COPA), new Carta(2, ESPADA));

@@ -221,4 +221,42 @@ class ControladorTest {
         conCorte.apostar(MAYOR);
         assertEquals("mostrarError sin conexión", vista.ultima());
     }
+
+    // ----- Salir -----
+
+    @Test
+    void salirQuitaAlJugadorYDejaDeObservar() throws RemoteException {
+        VistaEspia vistaAna = new VistaEspia();
+        boolean[] salio = {false};
+        Controlador ana = new Controlador(() -> salio[0] = true);
+        ana.setModeloRemoto(partida);
+        partida.agregarObservador(ana);
+        ana.setVista(vistaAna);
+        ana.entrar("Ana");
+        controlador.entrar("Beto");
+        int llamadasAntes = vistaAna.llamadas.size();
+
+        ana.salir();
+
+        assertTrue(salio[0]);
+        assertEquals(List.of("Beto"), partida.getJugadores().stream().map(Jugador::nombre).toList());
+        assertEquals("mostrarSala Beto admin=Beto yo=Beto", vista.ultima());
+        assertEquals(llamadasAntes, vistaAna.llamadas.size());   // a Ana ya no le avisan
+    }
+
+    @Test
+    void salirSinConexionSaleIgual() throws RemoteException {
+        boolean[] salio = {false};
+        Controlador conCorte = new Controlador(() -> salio[0] = true);
+        conCorte.setModeloRemoto(new PartidaSinConexion() {
+            @Override
+            public void quitarJugador(int idJugador) throws RemoteException {
+                throw new RemoteException("sin conexión");
+            }
+        });
+        conCorte.setVista(vista);
+        conCorte.entrar("Ana");
+        conCorte.salir();
+        assertTrue(salio[0]);
+    }
 }

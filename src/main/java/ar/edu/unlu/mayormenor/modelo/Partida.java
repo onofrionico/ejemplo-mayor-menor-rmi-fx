@@ -67,6 +67,29 @@ public class Partida extends ObservableRemoto implements IPartida {
     }
 
     @Override
+    public void quitarJugador(int idJugador) throws RemoteException {
+        Eventos evento = Eventos.JUGADORES_CAMBIARON;
+        int posicion = posicionDe(idJugador);
+        jugadores.remove(posicion);
+        if (jugadores.isEmpty()) {
+            // No queda nadie: la próxima persona que entre arranca de cero
+            estado = EstadoPartida.SALA;
+        } else if (estado == EstadoPartida.EN_JUEGO) {
+            if (terminoLaPartida()) {
+                evento = Eventos.PARTIDA_TERMINADA;
+            } else if (posicion < turno) {
+                turno--;   // se corrió la lista: el de turno sigue siendo el mismo
+            } else if (posicion == turno) {
+                // Le tocaba al que se fue: ahora le toca al siguiente vivo (el que quedó en su lugar)
+                turno = (posicion - 1 + jugadores.size()) % jugadores.size();
+                pasarTurno();
+            }
+        }
+        // El admin es siempre el primero de la lista: si se fue, ya pasó al siguiente
+        notificarObservadores(evento);
+    }
+
+    @Override
     public List<Jugador> getJugadores() {
         return List.copyOf(jugadores);
     }

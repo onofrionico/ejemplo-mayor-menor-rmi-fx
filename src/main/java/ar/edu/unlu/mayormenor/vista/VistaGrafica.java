@@ -39,11 +39,12 @@ public class VistaGrafica implements IVista {
         this.stage = stage;
         this.controlador = controlador;
         stage.setTitle("Mayor o Menor");
-        // Al cerrar la ventana principal, cerramos también la de reglas (si quedó abierta)
+        // Al cerrar la ventana: cerramos la de reglas (si quedó abierta) y salimos de la partida
         stage.setOnCloseRequest(e -> {
             if (juego != null) {
                 juego.cerrarReglas();
             }
+            controlador.salir();
         });
     }
 
