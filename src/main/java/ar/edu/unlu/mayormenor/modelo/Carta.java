@@ -1,12 +1,16 @@
 package ar.edu.unlu.mayormenor.modelo;
 
+import java.io.Serializable;
 import java.util.Set;
 
 /**
  * Una carta del mazo español de 40 cartas (sin 8 ni 9).
  * El 10 es la sota, el 11 el caballo y el 12 el rey.
+ * <p>
+ * Es {@link Serializable} porque viaja por la red: cuando un cliente pide la carta actual,
+ * el servidor le manda una <b>copia</b> (paso por valor).
  */
-public record Carta(int numero, Palo palo) {
+public record Carta(int numero, Palo palo) implements Serializable {
 
     public static final Set<Integer> NUMEROS_VALIDOS = Set.of(1, 2, 3, 4, 5, 6, 7, 10, 11, 12);
 

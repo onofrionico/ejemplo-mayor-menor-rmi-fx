@@ -1,10 +1,8 @@
 package ar.edu.unlu.mayormenor.modelo;
 
-import ar.edu.unlu.mayormenor.observer.IObservable;
-import ar.edu.unlu.mayormenor.observer.IObservador;
+import ar.edu.unlu.rmimvc.observer.ObservableRemoto;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.rmi.RemoteException;
 import java.util.function.Supplier;
 
 /**
@@ -14,12 +12,13 @@ import java.util.function.Supplier;
  * Si acierta suma un punto; si falla (o sale el mismo número) la partida termina.
  * Si se acaba el mazo, el jugador ganó.
  * <p>
- * Es el <b>modelo</b>: no sabe nada de JavaFX. Cuando cambia, avisa a sus observadores.
+ * Es el <b>modelo</b>: no sabe nada de JavaFX. Ahora es un <b>observable remoto</b>: hereda de
+ * {@link ObservableRemoto} (de la librería RMIMVC), que guarda la lista de observadores y les avisa
+ * aunque estén en otra máquina.
  */
-public class Partida implements IObservable {
+public class Partida extends ObservableRemoto implements IPartida {
 
     private final Supplier<Mazo> fabricaDeMazos;
-    private final List<IObservador> observadores = new ArrayList<>();
 
     private Mazo mazo;
     private Carta cartaActual;
@@ -33,7 +32,8 @@ public class Partida implements IObservable {
     }
 
     /** Empieza (o reinicia) la partida con un mazo nuevo. */
-    public void iniciar() {
+    @Override
+    public void iniciar() throws RemoteException {
         mazo = fabricaDeMazos.get();
         puntaje = 0;
         terminada = false;
@@ -42,7 +42,9 @@ public class Partida implements IObservable {
         notificarObservadores(Eventos.CARTA_NUEVA);
     }
 
-    public void apostar(Apuesta apuesta) {
+    @Override
+    public void apostar(Apuesta apuesta) throws RemoteException {
+        Eventos evento;
         verificarEnJuego();
         Carta siguiente = mazo.sacar();
         boolean acerto = apuesta == Apuesta.MAYOR
@@ -50,26 +52,26 @@ public class Partida implements IObservable {
                 : siguiente.esMenorQue(cartaActual);
         cartaActual = siguiente;
         if (!acerto) {
-            terminar(false);
-            return;
-        }
-        puntaje++;
-        if (mazo.quedanCartas()) {
-            notificarObservadores(Eventos.CARTA_NUEVA);
+            evento = terminar(false);
         } else {
-            terminar(true);
+            puntaje++;
+            evento = mazo.quedanCartas() ? Eventos.CARTA_NUEVA : terminar(true);
         }
+        notificarObservadores(evento);
     }
 
-    public void abandonar() {
+    @Override
+    public void abandonar() throws RemoteException {
+        Eventos evento;
         verificarEnJuego();
-        terminar(false);
+        evento = terminar(false);
+        notificarObservadores(evento);
     }
 
-    private void terminar(boolean gano) {
+    private Eventos terminar(boolean gano) {
         terminada = true;
         ganada = gano;
-        notificarObservadores(Eventos.PARTIDA_TERMINADA);
+        return Eventos.PARTIDA_TERMINADA;
     }
 
     private void verificarEnJuego() {
@@ -78,41 +80,29 @@ public class Partida implements IObservable {
         }
     }
 
+    @Override
     public Carta getCartaActual() {
         return cartaActual;
     }
 
+    @Override
     public int getPuntaje() {
         return puntaje;
     }
 
+    @Override
     public int getCartasRestantes() {
         return mazo == null ? 0 : mazo.cantidad();
     }
 
+    @Override
     public boolean isTerminada() {
         return terminada;
     }
 
     /** true solo si la partida terminó porque se acabó el mazo. */
+    @Override
     public boolean isGanada() {
         return ganada;
-    }
-
-    @Override
-    public void agregarObservador(IObservador o) {
-        observadores.add(o);
-    }
-
-    @Override
-    public void removerObservador(IObservador o) {
-        observadores.remove(o);
-    }
-
-    @Override
-    public void notificarObservadores(Object evento) {
-        for (IObservador o : List.copyOf(observadores)) {
-            o.actualizar(this, evento);
-        }
     }
 }

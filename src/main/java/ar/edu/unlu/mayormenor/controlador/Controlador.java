@@ -3,9 +3,11 @@ package ar.edu.unlu.mayormenor.controlador;
 import ar.edu.unlu.mayormenor.modelo.Apuesta;
 import ar.edu.unlu.mayormenor.modelo.Eventos;
 import ar.edu.unlu.mayormenor.modelo.Partida;
-import ar.edu.unlu.mayormenor.observer.IObservable;
-import ar.edu.unlu.mayormenor.observer.IObservador;
 import ar.edu.unlu.mayormenor.vista.IVista;
+import ar.edu.unlu.rmimvc.observer.IObservableRemoto;
+import ar.edu.unlu.rmimvc.observer.IObservadorRemoto;
+
+import java.rmi.RemoteException;
 
 /**
  * El Controlador del MVC.
@@ -14,16 +16,22 @@ import ar.edu.unlu.mayormenor.vista.IVista;
  *       y él se lo pide al modelo.</li>
  *   <li>Observa al modelo: cuando el modelo cambia, le pide a la vista que muestre el nuevo estado.</li>
  * </ul>
+ * Ahora el modelo es un observable remoto, así que el Controlador implementa
+ * {@link IObservadorRemoto} y cada llamada al modelo puede tirar {@link RemoteException}.
  * No importa nada de JavaFX: por eso se puede testear con una vista espía.
  */
-public class Controlador implements IObservador {
+public class Controlador implements IObservadorRemoto {
 
     private final Partida modelo;
     private IVista vista;
 
     public Controlador(Partida modelo) {
         this.modelo = modelo;
-        this.modelo.agregarObservador(this);
+        try {
+            this.modelo.agregarObservador(this);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
     }
 
     public void setVista(IVista vista) {
@@ -32,15 +40,27 @@ public class Controlador implements IObservador {
 
     public void jugar() {
         vista.mostrarJuego();
-        modelo.iniciar();
+        try {
+            modelo.iniciar();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
     }
 
     public void apostar(Apuesta apuesta) {
-        modelo.apostar(apuesta);
+        try {
+            modelo.apostar(apuesta);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
     }
 
     public void abandonar() {
-        modelo.abandonar();
+        try {
+            modelo.abandonar();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
     }
 
     public void volverAlMenu() {
@@ -48,7 +68,7 @@ public class Controlador implements IObservador {
     }
 
     @Override
-    public void actualizar(IObservable observable, Object evento) {
+    public void actualizar(IObservableRemoto observable, Object evento) throws RemoteException {
         if (evento == Eventos.CARTA_NUEVA) {
             vista.mostrarCarta(modelo.getCartaActual(), modelo.getPuntaje(), modelo.getCartasRestantes());
         } else if (evento == Eventos.PARTIDA_TERMINADA) {

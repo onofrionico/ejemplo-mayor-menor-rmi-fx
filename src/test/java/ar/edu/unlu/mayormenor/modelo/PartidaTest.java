@@ -1,10 +1,12 @@
 package ar.edu.unlu.mayormenor.modelo;
 
-import ar.edu.unlu.mayormenor.observer.IObservable;
-import ar.edu.unlu.mayormenor.observer.IObservador;
+import ar.edu.unlu.rmimvc.observer.IObservableRemoto;
+import ar.edu.unlu.rmimvc.observer.IObservadorRemoto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.Serializable;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -16,11 +18,11 @@ import static org.junit.jupiter.api.Assertions.*;
 class PartidaTest {
 
     /** Observador espía: anota los eventos que recibe. */
-    static class ObservadorEspia implements IObservador {
+    static class ObservadorEspia implements IObservadorRemoto {
         final List<Object> eventos = new ArrayList<>();
 
         @Override
-        public void actualizar(IObservable observable, Object evento) {
+        public void actualizar(IObservableRemoto observable, Object evento) {
             eventos.add(evento);
         }
 
@@ -40,7 +42,7 @@ class PartidaTest {
         return () -> new Mazo(List.of(cartas));
     }
 
-    private Partida partidaCon(Carta... cartas) {
+    private Partida partidaCon(Carta... cartas) throws RemoteException {
         Partida partida = new Partida(mazoDe(cartas));
         partida.agregarObservador(espia);
         partida.iniciar();
@@ -48,7 +50,7 @@ class PartidaTest {
     }
 
     @Test
-    void iniciarMuestraPrimeraCartaYNotifica() {
+    void iniciarMuestraPrimeraCartaYNotifica() throws RemoteException {
         Partida partida = partidaCon(new Carta(5, ORO), new Carta(7, COPA), new Carta(2, ESPADA));
         assertEquals(new Carta(5, ORO), partida.getCartaActual());
         assertEquals(0, partida.getPuntaje());
@@ -57,7 +59,7 @@ class PartidaTest {
     }
 
     @Test
-    void aciertoSumaPunto() {
+    void aciertoSumaPunto() throws RemoteException {
         Partida partida = partidaCon(new Carta(5, ORO), new Carta(7, COPA), new Carta(2, ESPADA));
         partida.apostar(MAYOR);
         assertEquals(1, partida.getPuntaje());
@@ -67,7 +69,7 @@ class PartidaTest {
     }
 
     @Test
-    void errorTerminaPartida() {
+    void errorTerminaPartida() throws RemoteException {
         Partida partida = partidaCon(new Carta(5, ORO), new Carta(7, COPA), new Carta(2, ESPADA));
         partida.apostar(MENOR);
         assertTrue(partida.isTerminada());
@@ -77,7 +79,7 @@ class PartidaTest {
     }
 
     @Test
-    void empateEsError() {
+    void empateEsError() throws RemoteException {
         Partida partida = partidaCon(new Carta(5, ORO), new Carta(5, COPA), new Carta(1, BASTO));
         partida.apostar(MAYOR);
         assertTrue(partida.isTerminada());
@@ -85,7 +87,7 @@ class PartidaTest {
     }
 
     @Test
-    void mazoAgotadoEsVictoria() {
+    void mazoAgotadoEsVictoria() throws RemoteException {
         Partida partida = partidaCon(new Carta(5, ORO), new Carta(7, COPA));
         partida.apostar(MAYOR);
         assertTrue(partida.isTerminada());
@@ -95,21 +97,21 @@ class PartidaTest {
     }
 
     @Test
-    void apostarConPartidaTerminadaFalla() {
+    void apostarConPartidaTerminadaFalla() throws RemoteException {
         Partida partida = partidaCon(new Carta(5, ORO), new Carta(7, COPA), new Carta(2, ESPADA));
         partida.apostar(MENOR);
         assertThrows(IllegalStateException.class, () -> partida.apostar(MAYOR));
     }
 
     @Test
-    void abandonarConPartidaTerminadaFalla() {
+    void abandonarConPartidaTerminadaFalla() throws RemoteException {
         Partida partida = partidaCon(new Carta(5, ORO), new Carta(7, COPA), new Carta(2, ESPADA));
         partida.abandonar();
         assertThrows(IllegalStateException.class, partida::abandonar);
     }
 
     @Test
-    void abandonarTermina() {
+    void abandonarTermina() throws RemoteException {
         Partida partida = partidaCon(new Carta(5, ORO), new Carta(7, COPA), new Carta(2, ESPADA));
         partida.abandonar();
         assertTrue(partida.isTerminada());
@@ -118,7 +120,7 @@ class PartidaTest {
     }
 
     @Test
-    void nuevaPartidaReinicia() {
+    void nuevaPartidaReinicia() throws RemoteException {
         Partida partida = partidaCon(new Carta(5, ORO), new Carta(7, COPA), new Carta(2, ESPADA));
         partida.apostar(MAYOR);
         partida.apostar(MAYOR); // 2 < 7: pierde
@@ -130,10 +132,15 @@ class PartidaTest {
     }
 
     @Test
-    void removerObservadorDejaDeNotificar() {
+    void removerObservadorDejaDeNotificar() throws RemoteException {
         Partida partida = partidaCon(new Carta(5, ORO), new Carta(7, COPA), new Carta(2, ESPADA));
         partida.removerObservador(espia);
         partida.apostar(MAYOR);
         assertEquals(1, espia.eventos.size());
+    }
+
+    @Test
+    void cartaEsSerializable() {
+        assertInstanceOf(Serializable.class, new Carta(1, ORO));
     }
 }
