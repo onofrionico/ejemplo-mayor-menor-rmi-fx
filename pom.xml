@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>ar.edu.unlu</groupId>
+    <artifactId>ejemplo-mayor-menor-fx</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- Compilamos para Java 17: corre con cualquier JDK 17 o superior (recomendado: JDK 21) -->
+        <maven.compiler.release>17</maven.compiler.release>
+        <!-- JavaFX 21 necesita como minimo Java 17 -->
+        <javafx.version>21.0.5</javafx.version>
+        <!--
+            Clase que arranca "mvn javafx:run". Se puede cambiar desde la linea de comandos
+            para correr una demo, por ejemplo:
+            ./mvnw javafx:run -Djavafx.mainClass=ar.edu.unlu.mayormenor.demos.DemoLayouts
+        -->
+        <javafx.mainClass>ar.edu.unlu.mayormenor.App</javafx.mainClass>
+    </properties>
+
+    <dependencies>
+        <!--
+            javafx-controls incluye los controles visuales: Button, Label, ImageView, layouts...
+            Maven descarga automaticamente el JAR correcto para tu sistema operativo.
+        -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+        <!-- javafx-fxml agrega FXMLLoader y la anotacion @FXML (vistas armadas con Scene Builder) -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+
+        <!-- JUnit 5 para los tests del modelo y del controlador -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.10.2</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- Solo para la herramienta que genera las capturas de pantalla del post (no la necesitás) -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-swing</artifactId>
+            <version>${javafx.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+            </plugin>
+            <!-- "mvn javafx:run" compila y abre la aplicacion -->
+            <plugin>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-maven-plugin</artifactId>
+                <version>0.0.8</version>
+                <configuration>
+                    <mainClass>${javafx.mainClass}</mainClass>
+                </configuration>
+            </plugin>
+            <!-- Solo para el generador de capturas del equipo docente -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.5.0</version>
+            </plugin>
+        </plugins>
+    </build>
+</project>

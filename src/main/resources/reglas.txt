@@ -1,0 +1,10 @@
+MAYOR O MENOR
+
+Se juega con el mazo español de 40 cartas (sin 8 ni 9).
+El valor de cada carta es su número: el 1 es la más baja y el 12 (rey) la más alta.
+
+1. Se muestra una carta.
+2. Apostá si la próxima carta va a ser MAYOR o MENOR.
+3. Si acertás, sumás un punto y seguís jugando con la nueva carta.
+4. Si fallás, o si sale una carta del mismo número, la partida termina.
+5. Si se acaba el mazo sin que falles, ¡ganaste!

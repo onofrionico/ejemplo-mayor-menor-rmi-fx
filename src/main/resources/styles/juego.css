@@ -1,0 +1,30 @@
+/*
+ * Hoja de estilos del juego.
+ * En JavaFX las propiedades CSS llevan el prefijo -fx-.
+ * Se aplica desde cada FXML con stylesheets="@../styles/juego.css".
+ */
+
+/* Paño verde de mesa de juego */
+.mesa {
+    -fx-background-color: #1e5e3a;
+}
+
+.mesa .label {
+    -fx-text-fill: white;
+    -fx-font-size: 16px;
+}
+
+.mesa .button {
+    -fx-font-size: 16px;
+    -fx-background-radius: 8;
+}
+
+.mesa .button:hover {
+    -fx-background-color: #f4e9c9;
+}
+
+/* La barra de menú conserva su aspecto normal */
+.mesa .menu-bar .label {
+    -fx-text-fill: black;
+    -fx-font-size: 13px;
+}
