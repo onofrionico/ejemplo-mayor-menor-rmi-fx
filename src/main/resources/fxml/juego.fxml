@@ -3,19 +3,21 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
-<?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
-<?import javafx.scene.input.KeyCodeCombination?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<!-- La mesa: la carta en el centro, los botones de apuesta abajo, el menú y la información arriba. -->
-<BorderPane prefWidth="420.0" prefHeight="540.0"
+<!--
+    La mesa: la carta en el centro, los jugadores a la derecha, los botones de apuesta abajo,
+    el menú, el turno y la información arriba.
+-->
+<BorderPane prefWidth="640.0" prefHeight="560.0"
             xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
             fx:controller="ar.edu.unlu.mayormenor.vista.JuegoController"
             stylesheets="@../styles/juego.css" styleClass="mesa">
@@ -23,45 +25,52 @@
         <VBox>
             <MenuBar>
                 <Menu text="Partida">
-                    <MenuItem text="Nueva" onAction="#onNueva">
-                        <accelerator>
-                            <KeyCodeCombination code="N" shortcut="DOWN" alt="UP" control="UP" meta="UP" shift="UP"/>
-                        </accelerator>
-                    </MenuItem>
-                    <SeparatorMenuItem/>
-                    <MenuItem text="Abandonar" onAction="#onAbandonar"/>
+                    <MenuItem fx:id="miAbandonar" text="Abandonar" onAction="#onAbandonar"/>
                 </Menu>
                 <Menu text="Ayuda">
                     <MenuItem text="Reglas" onAction="#onReglas"/>
                 </Menu>
             </MenuBar>
-            <HBox spacing="30.0" alignment="CENTER">
+            <VBox spacing="8.0" alignment="CENTER">
                 <padding>
-                    <Insets top="15.0" bottom="15.0"/>
+                    <Insets top="15.0" bottom="10.0"/>
                 </padding>
-                <Label fx:id="lblPuntaje" text="Puntaje: 0"/>
-                <Label fx:id="lblRestantes" text="Quedan: 39"/>
-            </HBox>
+                <!-- De quién es el turno: "Tu turno", "Esperando a Ana…" o "Estás eliminado" -->
+                <Label fx:id="lblTurno" text="Esperando…" styleClass="turno"/>
+                <HBox spacing="30.0" alignment="CENTER">
+                    <Label fx:id="lblPuntaje" text="Tus aciertos: 0"/>
+                    <Label fx:id="lblRestantes" text="Quedan: 39"/>
+                </HBox>
+            </VBox>
         </VBox>
     </top>
     <center>
         <!-- fitWidth + preserveRatio: la imagen se escala a 200 px de ancho sin deformarse -->
         <ImageView fx:id="imgCarta" fitWidth="200.0" preserveRatio="true"/>
     </center>
+    <right>
+        <VBox spacing="8.0">
+            <padding>
+                <Insets right="20.0" left="10.0"/>
+            </padding>
+            <Label text="Jugadores"/>
+            <ListView fx:id="lstJugadores" prefWidth="190.0" prefHeight="260.0" focusTraversable="false"/>
+        </VBox>
+    </right>
     <bottom>
         <HBox spacing="20.0" alignment="CENTER">
             <padding>
                 <Insets top="20.0" bottom="20.0"/>
             </padding>
             <!-- Un botón con imagen: el ImageView va en la propiedad "graphic" del botón -->
-            <Button fx:id="btnMayor" text="Mayor" onAction="#onMayor" prefWidth="140.0">
+            <Button fx:id="btnMayor" text="Mayor" onAction="#onMayor" prefWidth="140.0" disable="true">
                 <graphic>
                     <ImageView fitWidth="24.0" preserveRatio="true">
                         <Image url="@../img/iconos/mayor.png"/>
                     </ImageView>
                 </graphic>
             </Button>
-            <Button fx:id="btnMenor" text="Menor" onAction="#onMenor" prefWidth="140.0">
+            <Button fx:id="btnMenor" text="Menor" onAction="#onMenor" prefWidth="140.0" disable="true">
                 <graphic>
                     <ImageView fitWidth="24.0" preserveRatio="true">
                         <Image url="@../img/iconos/menor.png"/>

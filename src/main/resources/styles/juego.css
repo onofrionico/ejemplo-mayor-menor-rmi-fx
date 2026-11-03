@@ -23,6 +23,13 @@
     -fx-background-color: #f4e9c9;
 }
 
+/* De quién es el turno: lo más importante de la mesa */
+.mesa .turno {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #f4e9c9;
+}
+
 /* La barra de menú conserva su aspecto normal */
 .mesa .menu-bar .label {
     -fx-text-fill: black;

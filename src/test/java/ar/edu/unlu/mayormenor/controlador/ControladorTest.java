@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static ar.edu.unlu.mayormenor.modelo.Apuesta.MAYOR;
+import static ar.edu.unlu.mayormenor.modelo.Apuesta.MENOR;
 import static ar.edu.unlu.mayormenor.modelo.Palo.*;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -28,10 +29,13 @@ class ControladorTest {
     static class VistaEspia implements IVista {
         final List<String> llamadas = new ArrayList<>();
 
+        private static String nombres(List<Jugador> jugadores) {
+            return jugadores.stream().map(Jugador::nombre).collect(Collectors.joining(","));
+        }
+
         @Override
         public void mostrarSala(List<Jugador> jugadores, Jugador admin, Jugador yo) {
-            llamadas.add("mostrarSala " + jugadores.stream().map(Jugador::nombre).collect(Collectors.joining(","))
-                    + " admin=" + admin.nombre() + " yo=" + yo.nombre());
+            llamadas.add("mostrarSala " + nombres(jugadores) + " admin=" + admin.nombre() + " yo=" + yo.nombre());
         }
 
         @Override
@@ -40,13 +44,14 @@ class ControladorTest {
         }
 
         @Override
-        public void mostrarCarta(Carta carta, int puntaje, int restantes) {
-            llamadas.add("mostrarCarta " + carta.numero() + "-" + carta.palo() + " " + puntaje + " " + restantes);
+        public void mostrarMesa(Carta carta, int restantes, List<Jugador> jugadores, Jugador deTurno, Jugador yo) {
+            llamadas.add("mostrarMesa " + carta.numero() + "-" + carta.palo() + " r" + restantes
+                    + " turno=" + deTurno.nombre() + " yo=" + yo.nombre() + (yo.vivo() ? "" : " eliminado"));
         }
 
         @Override
-        public void mostrarResultado(int puntaje, boolean ganada) {
-            llamadas.add("mostrarResultado " + puntaje + " " + ganada);
+        public void mostrarResultado(List<Jugador> ganadores, List<Jugador> jugadores, Jugador yo, boolean soyAdmin) {
+            llamadas.add("mostrarResultado ganadores=" + nombres(ganadores) + " yo=" + yo.nombre() + " admin=" + soyAdmin);
         }
 
         @Override
@@ -66,7 +71,7 @@ class ControladorTest {
         }
 
         @Override
-        public void apostar(Apuesta apuesta) throws RemoteException {
+        public void apostar(int idJugador, Apuesta apuesta) throws RemoteException {
             throw new RemoteException("sin conexión");
         }
     }
@@ -92,6 +97,8 @@ class ControladorTest {
         controlador = conectar(partida, vista);
     }
 
+    // ----- Sala -----
+
     @Test
     void entrarMuestraLaSala() {
         assertTrue(controlador.entrar("Ana"));
@@ -115,23 +122,6 @@ class ControladorTest {
     }
 
     @Test
-    void empezarMuestraLaMesaYLaPrimeraCarta() {
-        controlador.entrar("Ana");
-        controlador.empezar();
-        assertEquals(List.of("mostrarSala Ana admin=Ana yo=Ana", "mostrarJuego", "mostrarCarta 5-ORO 0 2"),
-                vista.llamadas);
-    }
-
-    @Test
-    void empezarLeMuestraLaMesaATodos() throws RemoteException {
-        VistaEspia vistaBeto = new VistaEspia();
-        controlador.entrar("Ana");
-        conectar(partida, vistaBeto).entrar("Beto");
-        controlador.empezar();
-        assertEquals("mostrarCarta 5-ORO 0 2", vistaBeto.ultima());
-    }
-
-    @Test
     void soloElAdminPuedeEmpezar() throws RemoteException {
         controlador.entrar("Ana");
         VistaEspia vistaBeto = new VistaEspia();
@@ -141,12 +131,49 @@ class ControladorTest {
         assertEquals("mostrarError Solo Ana puede empezar la partida", vistaBeto.ultima());
     }
 
+    // ----- Mesa y turnos -----
+
     @Test
-    void acertarMuestraLaNuevaCarta() {
+    void empezarMuestraLaMesaYLaPrimeraCarta() {
         controlador.entrar("Ana");
         controlador.empezar();
+        assertEquals(List.of("mostrarSala Ana admin=Ana yo=Ana", "mostrarJuego", "mostrarMesa 5-ORO r2 turno=Ana yo=Ana"),
+                vista.llamadas);
+    }
+
+    @Test
+    void soloElJugadorDeTurnoVeSuTurno() throws RemoteException {
+        VistaEspia vistaBeto = new VistaEspia();
+        controlador.entrar("Ana");
+        conectar(partida, vistaBeto).entrar("Beto");
+        controlador.empezar();
+        assertEquals("mostrarMesa 5-ORO r2 turno=Ana yo=Beto", vistaBeto.ultima());
         controlador.apostar(MAYOR);
-        assertEquals("mostrarCarta 7-COPA 1 1", vista.ultima());
+        assertEquals("mostrarMesa 7-COPA r1 turno=Beto yo=Beto", vistaBeto.ultima());
+        assertEquals("mostrarMesa 7-COPA r1 turno=Beto yo=Ana", vista.ultima());
+    }
+
+    @Test
+    void apostarFueraDeTurnoMuestraError() throws RemoteException {
+        VistaEspia vistaBeto = new VistaEspia();
+        controlador.entrar("Ana");
+        Controlador beto = conectar(partida, vistaBeto);
+        beto.entrar("Beto");
+        controlador.empezar();
+        beto.apostar(MAYOR);
+        assertEquals("mostrarError No es tu turno", vistaBeto.ultima());
+    }
+
+    @Test
+    void elEliminadoSigueViendoLaMesa() throws RemoteException {
+        VistaEspia vistaBeto = new VistaEspia();
+        VistaEspia vistaCaro = new VistaEspia();
+        controlador.entrar("Ana");
+        conectar(partida, vistaBeto).entrar("Beto");
+        conectar(partida, vistaCaro).entrar("Caro");
+        controlador.empezar();
+        controlador.apostar(MENOR); // 7 > 5: Ana queda eliminada
+        assertEquals("mostrarMesa 7-COPA r1 turno=Beto yo=Ana eliminado", vista.ultima());
     }
 
     @Test
@@ -155,7 +182,18 @@ class ControladorTest {
         controlador.empezar();
         controlador.apostar(MAYOR);
         controlador.apostar(MAYOR); // 2 < 7
-        assertEquals("mostrarResultado 1 false", vista.ultima());
+        assertEquals("mostrarResultado ganadores= yo=Ana admin=true", vista.ultima());
+    }
+
+    @Test
+    void elResultadoLlegaATodos() throws RemoteException {
+        VistaEspia vistaBeto = new VistaEspia();
+        controlador.entrar("Ana");
+        conectar(partida, vistaBeto).entrar("Beto");
+        controlador.empezar();
+        controlador.apostar(MENOR); // Ana falla: gana Beto
+        assertEquals("mostrarResultado ganadores=Beto yo=Beto admin=false", vistaBeto.ultima());
+        assertEquals("mostrarResultado ganadores=Beto yo=Ana admin=true", vista.ultima());
     }
 
     @Test
@@ -163,7 +201,7 @@ class ControladorTest {
         controlador.entrar("Ana");
         controlador.empezar();
         controlador.abandonar();
-        assertEquals("mostrarResultado 0 false", vista.ultima());
+        assertEquals("mostrarResultado ganadores= yo=Ana admin=true", vista.ultima());
     }
 
     @Test
@@ -181,6 +219,6 @@ class ControladorTest {
         conCorte.entrar("Ana");
         conCorte.empezar();
         conCorte.apostar(MAYOR);
-        assertTrue(vista.ultima().startsWith("mostrarError"), vista.ultima());
+        assertEquals("mostrarError sin conexión", vista.ultima());
     }
 }

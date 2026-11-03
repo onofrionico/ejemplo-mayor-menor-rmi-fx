@@ -1,6 +1,7 @@
 package ar.edu.unlu.mayormenor.controlador;
 
 import ar.edu.unlu.mayormenor.modelo.Apuesta;
+import ar.edu.unlu.mayormenor.modelo.EstadoPartida;
 import ar.edu.unlu.mayormenor.modelo.Eventos;
 import ar.edu.unlu.mayormenor.modelo.IPartida;
 import ar.edu.unlu.mayormenor.modelo.Jugador;
@@ -9,6 +10,7 @@ import ar.edu.unlu.rmimvc.cliente.IControladorRemoto;
 import ar.edu.unlu.rmimvc.observer.IObservableRemoto;
 
 import java.rmi.RemoteException;
+import java.util.List;
 
 /**
  * El Controlador del MVC.
@@ -23,7 +25,8 @@ import java.rmi.RemoteException;
  * (en los tests) o un <i>stub</i> que habla con el servidor.
  * <p>
  * Hay un Controlador por cliente, y cada uno recuerda <b>quién es</b> ({@link #yo}): el jugador que
- * le devolvió el modelo al entrar.
+ * le devolvió el modelo al entrar. Con eso arma lo que ve <i>este</i> jugador: si le toca, si está
+ * eliminado, si es el admin. Las reglas (a quién le toca, quién ganó) las decide el modelo.
  * <p>
  * Cualquier llamada al modelo puede fallar ({@link RemoteException} si se cortó la red,
  * {@link IllegalStateException} o {@link IllegalArgumentException} si el modelo no la permite):
@@ -74,7 +77,7 @@ public class Controlador implements IControladorRemoto {
 
     public void apostar(Apuesta apuesta) {
         try {
-            modelo.apostar(apuesta);
+            modelo.apostar(yo.id(), apuesta);
         } catch (RemoteException | IllegalStateException e) {
             vista.mostrarError(e.getMessage());
         }
@@ -82,7 +85,7 @@ public class Controlador implements IControladorRemoto {
 
     public void abandonar() {
         try {
-            modelo.abandonar();
+            modelo.abandonar(yo.id());
         } catch (RemoteException | IllegalStateException e) {
             vista.mostrarError(e.getMessage());
         }
@@ -97,7 +100,24 @@ public class Controlador implements IControladorRemoto {
     }
 
     private void mostrarSala() throws RemoteException {
-        vista.mostrarSala(modelo.getJugadores(), modelo.getAdmin(), yo);
+        List<Jugador> jugadores = modelo.getJugadores();
+        vista.mostrarSala(jugadores, modelo.getAdmin(), yoEn(jugadores));
+    }
+
+    private void mostrarMesa() throws RemoteException {
+        List<Jugador> jugadores = modelo.getJugadores();
+        vista.mostrarMesa(modelo.getCartaActual(), modelo.getCartasRestantes(), jugadores,
+                modelo.getJugadorDeTurno(), yoEn(jugadores));
+    }
+
+    private void mostrarResultado() throws RemoteException {
+        List<Jugador> jugadores = modelo.getJugadores();
+        vista.mostrarResultado(modelo.getGanadores(), jugadores, yoEn(jugadores), yo.esElMismoQue(modelo.getAdmin()));
+    }
+
+    /** Mi jugador tal como está ahora (vivo o eliminado, con sus aciertos). */
+    private Jugador yoEn(List<Jugador> jugadores) {
+        return jugadores.stream().filter(yo::esElMismoQue).findFirst().orElse(yo);
     }
 
     @Override
@@ -107,14 +127,20 @@ public class Controlador implements IControladorRemoto {
             return;
         }
         if (evento == Eventos.JUGADORES_CAMBIARON) {
-            mostrarSala();
+            EstadoPartida estado = modelo.getEstado();
+            if (estado == EstadoPartida.EN_JUEGO) {
+                mostrarMesa();
+            } else if (estado == EstadoPartida.SALA) {
+                mostrarSala();
+            }
+            // Con la partida terminada no cambiamos de pantalla: cada uno sigue viendo el resultado
         } else if (evento == Eventos.PARTIDA_INICIADA) {
             vista.mostrarJuego();
-            vista.mostrarCarta(modelo.getCartaActual(), modelo.getPuntaje(), modelo.getCartasRestantes());
+            mostrarMesa();
         } else if (evento == Eventos.CARTA_NUEVA) {
-            vista.mostrarCarta(modelo.getCartaActual(), modelo.getPuntaje(), modelo.getCartasRestantes());
+            mostrarMesa();
         } else if (evento == Eventos.PARTIDA_TERMINADA) {
-            vista.mostrarResultado(modelo.getPuntaje(), modelo.isGanada());
+            mostrarResultado();
         }
     }
 }

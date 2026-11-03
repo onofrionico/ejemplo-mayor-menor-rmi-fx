@@ -1,10 +1,12 @@
-MAYOR O MENOR
+MAYOR O MENOR (en red, por turnos)
 
 Se juega con el mazo español de 40 cartas (sin 8 ni 9).
 El valor de cada carta es su número: el 1 es la más baja y el 12 (rey) la más alta.
 
-1. Se muestra una carta.
-2. Apostá si la próxima carta va a ser MAYOR o MENOR.
-3. Si acertás, sumás un punto y seguís jugando con la nueva carta.
-4. Si fallás, o si sale una carta del mismo número, la partida termina.
-5. Si se acaba el mazo sin que falles, ¡ganaste!
+1. Todos los jugadores ven la misma carta.
+2. En tu turno, apostá si la próxima carta va a ser MAYOR o MENOR.
+3. Si acertás, seguís vivo. Si fallás, o si sale una carta del mismo número, quedás eliminado.
+4. Después de cada apuesta, el turno pasa al siguiente jugador que sigue vivo.
+5. Gana el último que queda vivo. Si se acaba el mazo, ganan todos los que siguen vivos.
+
+Jugando de a uno: si fallás perdés, y si se acaba el mazo sin que falles, ¡ganaste!

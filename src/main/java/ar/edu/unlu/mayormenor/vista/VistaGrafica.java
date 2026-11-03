@@ -70,13 +70,13 @@ public class VistaGrafica implements IVista {
     }
 
     @Override
-    public void mostrarCarta(Carta carta, int puntaje, int restantes) {
-        // Misma escena: solo cambian la carta y los textos
-        Platform.runLater(() -> juego.mostrarCarta(carta, puntaje, restantes));
+    public void mostrarMesa(Carta carta, int restantes, List<Jugador> jugadores, Jugador deTurno, Jugador yo) {
+        // Misma escena: solo cambian la carta, los textos y qué botones se pueden usar
+        Platform.runLater(() -> juego.mostrarMesa(carta, restantes, jugadores, deTurno, yo));
     }
 
     @Override
-    public void mostrarResultado(int puntaje, boolean ganada) {
+    public void mostrarResultado(List<Jugador> ganadores, List<Jugador> jugadores, Jugador yo, boolean soyAdmin) {
         Platform.runLater(() -> {
             // La partida terminó: que no se pueda seguir apostando en la mesa
             if (juego != null) {
@@ -85,7 +85,7 @@ public class VistaGrafica implements IVista {
             // Cambio de escena: de la mesa a la pantalla de resultado
             ResultadoController resultado = cargar("/fxml/resultado.fxml");
             resultado.setControlador(controlador);
-            resultado.mostrar(puntaje, ganada);
+            resultado.mostrar(ganadores, jugadores, yo, soyAdmin);
         });
     }
 

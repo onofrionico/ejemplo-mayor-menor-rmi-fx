@@ -20,11 +20,22 @@ public interface IVista {
      */
     void mostrarSala(List<Jugador> jugadores, Jugador admin, Jugador yo);
 
+    /** Pasa a la mesa de juego. */
     void mostrarJuego();
 
-    void mostrarCarta(Carta carta, int puntaje, int restantes);
+    /**
+     * El estado de la mesa: la carta, quién está vivo y a quién le toca.
+     * La vista habilita las apuestas solo si {@code deTurno} es {@code yo}.
+     */
+    void mostrarMesa(Carta carta, int restantes, List<Jugador> jugadores, Jugador deTurno, Jugador yo);
 
-    void mostrarResultado(int puntaje, boolean ganada);
+    /**
+     * Fin de la partida.
+     *
+     * @param ganadores vacía si nadie ganó
+     * @param soyAdmin  si este cliente puede empezar otra partida
+     */
+    void mostrarResultado(List<Jugador> ganadores, List<Jugador> jugadores, Jugador yo, boolean soyAdmin);
 
     /** Algo salió mal (por ejemplo, se cortó la conexión con el servidor). */
     void mostrarError(String mensaje);
