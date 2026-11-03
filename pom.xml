@@ -6,7 +6,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>ar.edu.unlu</groupId>
-    <artifactId>ejemplo-mayor-menor-fx</artifactId>
+    <artifactId>ejemplo-mayor-menor-rmi-fx</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
@@ -17,9 +17,8 @@
         <!-- JavaFX 21 necesita como minimo Java 17 -->
         <javafx.version>21.0.5</javafx.version>
         <!--
-            Clase que arranca "mvn javafx:run". Se puede cambiar desde la linea de comandos
-            para correr una demo, por ejemplo:
-            ./mvnw javafx:run -Djavafx.mainClass=ar.edu.unlu.mayormenor.demos.DemoLayouts
+            Clase que arranca "mvn javafx:run" (uso del equipo docente; desde IntelliJ
+            se usan los lanzadores).
         -->
         <javafx.mainClass>ar.edu.unlu.mayormenor.App</javafx.mainClass>
     </properties>
@@ -39,6 +38,19 @@
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
             <version>${javafx.version}</version>
+        </dependency>
+
+        <!--
+            LibreriaRMIMVC: la librería de RMI de la asignatura (paquete ar.edu.unlu.rmimvc).
+            No está en Maven Central, así que la traemos en la carpeta lib/ y la declaramos
+            como dependencia "system": Maven la usa tal cual desde esa ruta.
+        -->
+        <dependency>
+            <groupId>ar.edu.unlu</groupId>
+            <artifactId>rmimvc</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/LibreriaRMIMVC.jar</systemPath>
         </dependency>
 
         <!-- JUnit 5 para los tests del modelo y del controlador -->
