@@ -71,6 +71,7 @@ Es un ejemplo para aprender, no un juego robusto en red:
 
 - Si un cliente se cierra de golpe (por ejemplo, matando el proceso o con el botón Stop de IntelliJ) sin pasar por la ventana, el servidor no se entera y los avisos a los demás pueden fallar. Cerrá cada cliente con la X de su ventana.
 - Si se cae el servidor, los clientes muestran un error pero no se reconectan.
+- El servidor atiende a cada cliente por separado y al mismo tiempo, y el modelo no se protege de que dos jugadores lo cambien exactamente a la vez (por ejemplo, dos que entran a la sala en el mismo instante). Como el juego es por turnos casi nunca pasa, y lo dejamos así para mantener el ejemplo simple.
 
 ## Créditos de imágenes
 
