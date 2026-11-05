@@ -26,7 +26,7 @@ El proyecto trae dos configuraciones de ejecución (carpeta `.run/`), que aparec
 1. **Servidor**: ejecutala primero. Aceptá la IP y el puerto que propone (`8888`). Queda abierta una ventanita que dice "Servidor corriendo".
 2. **Cliente**: ejecutala una vez por cada jugador. Tiene activada la opción *Allow multiple instances*, así que podés abrir varias. En los diálogos aceptá los valores que propone: si ya hay otro cliente abierto en la misma PC, propone otro puerto solo.
 
-Para jugar entre varias PCs de la misma red, en el servidor elegí la IP de la red (no `127.0.0.1`) y en cada cliente escribí esa IP como "IP del servidor".
+Para jugar entre varias PCs conectadas al mismo router o wifi, en el servidor elegí la **IP privada que el router le dio a esa PC** (casi siempre empieza con `192.168.` o `10.`, por ejemplo `192.168.0.15`; en Windows la ves con `ipconfig`, como "Dirección IPv4" del adaptador de wifi o Ethernet), no `127.0.0.1`. En cada cliente elegí la IP privada de esa PC y escribí la del servidor como "IP del servidor".
 
 Las configuraciones arrancan desde `LanzadorServidor` y `LanzadorCliente`. Si corrés directamente `AppServidor` o `AppCliente`, Java puede quejarse con `JavaFX runtime components are missing`.
 
